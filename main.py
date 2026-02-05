@@ -1,28 +1,42 @@
-#To activate a virtual environment in Python, you typically use the following command in your terminal or command prompt:
-# On Windows: .\venv\Scripts\Activate.ps1
 import pygame
 from sys import exit
-#Starts and initiates pygame
-pygame.init()
-x = pygame.display .set_mode((1200, 600)) 
-pygame.display.set_caption("Map Generator")
+from settings import TILE_SIZE,WIDTH,HEIGHT,FPS
+pygame.display.set_caption("Grid")
 clock = pygame.time.Clock()
-tp_sur = pygame.Surface((50, 50))
-player = pygame.image.load('ima.png').convert_alpha()
-player_rect = player.get_rect(bottomright = (600,300))
+
+
+#Sprite class for Canvas
+class Grid(pygame.sprite.Sprite):
+    def __init__(self,x,y):
+        super().__init__()
+        self.image = pygame.Surface((TILE_SIZE,TILE_SIZE))
+        self.rect = self.image.get_rect(topleft = (x,y))
+        self.image.fill('White')
+
+grid_surf = pygame.sprite.Group()
 
 
 
-player_resize = pygame.transform.scale(player,(300,200))
+#Display Screen
+pygame.init()
+screen = pygame.display.set_mode((WIDTH,HEIGHT))
+
+for i in range(WIDTH//TILE_SIZE):
+    for j in range(HEIGHT//TILE_SIZE):
+        x_pos_new = i*TILE_SIZE #Multiplied By the respective number of pixel
+        y_pos_new = j*TILE_SIZE #i and j increases 
+        new_tile = Grid(x_pos_new,y_pos_new)
+        grid_surf.add(new_tile)
+
+
+
+# -----   Game Loop  -------
 while True:
     for event in pygame.event.get():
-        if event.type == pygame.QUIT:
+        if(event.type == pygame.QUIT):
+            pygame.quit()
             exit()
-
-    if(player_rect.right<1300):
-        player_rect.x+= 4
-    else:
-        player_rect.left=0
-    x.blit(player_resize, player_rect)
+    screen.fill("Black")
+    grid_surf.draw(screen)
     pygame.display.update()
-    clock.tick(60)
+    clock.tick(FPS)
