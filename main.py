@@ -21,7 +21,10 @@ grid_surf = pygame.sprite.Group()
 #Display Screen
 pygame.init()
 screen = pygame.display.set_mode((WIDTH,HEIGHT))
-seed = 42 #Zero for now to make the map consistent when you run the code
+
+
+seed = 42 
+seed_moisture = 30
 scale = 0.1 #For smoothness of image elevation and depression 
 rows = WIDTH//TILE_SIZE
 cols = HEIGHT//TILE_SIZE
@@ -29,6 +32,8 @@ offset_x = 0
 offset_y = 0
 scroll_speed = 1.5
 update = False #TO update map only when user presses "WASD" key
+forest_colour = (34,139,34)
+savana_colour = (210,210,100)
 
 def map_gen(offset_x,offset_y):
     grid_surf.empty()
@@ -37,21 +42,24 @@ def map_gen(offset_x,offset_y):
             noise_val = pnoise2((i*scale)+offset_x,(j*scale)+offset_y,base = seed,octaves = 5,persistence = 0.4,lacunarity = 1.5)
             x_pos_new = i*TILE_SIZE #Multiplied By the respective number of pixel
             y_pos_new = j*TILE_SIZE #i and j increases        
-            if(noise_val>0 and noise_val<0.6):
-                tile_colour = "Green"
-            elif(noise_val>0.6 and noise_val<1):
-                tile_colour = "White"
-            elif(noise_val<0 and noise_val>-0.5):
-                tile_colour = sand_colour
-            else:
+            moist_val = pnoise2((i*scale)+ offset_x, (j*scale)+offset_y,base = seed_moisture,octaves = 5)
+            if noise_val<-0.1:
                 tile_colour = "Blue"
-            
+            elif noise_val<0.1:
+                if(moist_val>0.5):
+                    tile_colour = forest_colour
+                elif moist_val<-0.5:
+                    tile_colour = savana_colour
+                else:
+                    tile_colour = "Green"
+            else:
+                tile_colour = 'White'
             new_tile = Grid(x_pos_new,y_pos_new,tile_colour)
             grid_surf.add(new_tile)
 
 map_gen(offset_x,offset_y)
 
-# -----   Game Loop  -------
+#Game Loop  
 while True:
     for event in pygame.event.get():
         if(event.type == pygame.QUIT):
