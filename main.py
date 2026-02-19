@@ -4,15 +4,15 @@ from settings import TILE_SIZE,WIDTH,HEIGHT,FPS
 from noise import pnoise2 #For 2D image 
 pygame.display.set_caption("Grid")
 clock = pygame.time.Clock()
-sand_colour  = (194, 178, 128) #RGB for Skin Colour
+
+
 
 #Sprite class for Canvas
 class Grid(pygame.sprite.Sprite):
-    def __init__(self,x,y,colour):
+    def __init__(self,x,y,image):
         super().__init__()
-        self.image = pygame.Surface((TILE_SIZE,TILE_SIZE))
+        self.image = image
         self.rect = self.image.get_rect(topleft = (x,y))
-        self.image.fill(colour)
 
 grid_surf = pygame.sprite.Group()
 
@@ -20,6 +20,7 @@ grid_surf = pygame.sprite.Group()
 
 #Display Screen
 pygame.init()
+from textures import water_img,forest_img,sand_img,grass_img,snow_img
 screen = pygame.display.set_mode((WIDTH,HEIGHT))
 
 
@@ -44,16 +45,16 @@ def map_gen(offset_x,offset_y):
             y_pos_new = j*TILE_SIZE #i and j increases        
             moist_val = pnoise2((i*scale)+ offset_x, (j*scale)+offset_y,base = seed_moisture,octaves = 5)
             if noise_val<-0.1:
-                tile_colour = "Blue"
+                tile_colour = water_img
             elif noise_val<0.1:
                 if(moist_val>0.5):
-                    tile_colour = forest_colour
+                    tile_colour = forest_img
                 elif moist_val<-0.5:
-                    tile_colour = savana_colour
+                    tile_colour = sand_img
                 else:
-                    tile_colour = "Green"
+                    tile_colour = grass_img
             else:
-                tile_colour = 'White'
+                tile_colour = snow_img
             new_tile = Grid(x_pos_new,y_pos_new,tile_colour)
             grid_surf.add(new_tile)
 
@@ -82,6 +83,7 @@ while True:
         update = True
     if(update):
         map_gen(offset_x,offset_y)
+        update = False
     screen.fill("Black")
     grid_surf.draw(screen)
     pygame.display.update()
