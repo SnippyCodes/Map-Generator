@@ -1,10 +1,15 @@
 import pygame
+import random as rn
 from sys import exit
 from settings import TILE_SIZE,WIDTH,HEIGHT,FPS
 from noise import pnoise2 #For 2D image 
+pygame.init()
 pygame.display.set_caption("Grid")
 clock = pygame.time.Clock()
 
+#Display Screen
+screen = pygame.display.set_mode((WIDTH,HEIGHT))
+from textures import water_img,forest_img,sand_img,grass_img,snow_img,savana_img
 
 
 #Sprite class for Canvas
@@ -16,16 +21,8 @@ class Grid(pygame.sprite.Sprite):
 
 grid_surf = pygame.sprite.Group()
 
-
-
-#Display Screen
-pygame.init()
-from textures import water_img,forest_img,sand_img,grass_img,snow_img
-screen = pygame.display.set_mode((WIDTH,HEIGHT))
-
-
-seed = 42 
-seed_moisture = 30
+seed = rn.randint(1,1000000)
+seed_moisture = rn.randint(1,1000000)
 scale = 0.1 #For smoothness of image elevation and depression 
 rows = WIDTH//TILE_SIZE
 cols = HEIGHT//TILE_SIZE
@@ -36,26 +33,40 @@ update = False #TO update map only when user presses "WASD" key
 forest_colour = (34,139,34)
 savana_colour = (210,210,100)
 
+def isometric(x,y):
+    x_iso = x-y
+    y_iso = (x+y)//2
+    return x_iso,y_iso
+
 def map_gen(offset_x,offset_y):
     grid_surf.empty()
     for i in range(rows):
         for j in range(cols):
-            noise_val = pnoise2((i*scale)+offset_x,(j*scale)+offset_y,base = seed,octaves = 5,persistence = 0.4,lacunarity = 1.5)
-            x_pos_new = i*TILE_SIZE #Multiplied By the respective number of pixel
-            y_pos_new = j*TILE_SIZE #i and j increases        
+            noise_val = pnoise2((i*scale)+offset_x,(j*scale)+offset_y,base = seed,octaves = 5,persistence = 0.4,lacunarity = 1.5)        
             moist_val = pnoise2((i*scale)+ offset_x, (j*scale)+offset_y,base = seed_moisture,octaves = 5)
+            
+            
+            cart_x = (i * TILE_SIZE) + offset_x
+            cart_y = (j * TILE_SIZE) + offset_y
+
+            iso_x, iso_y = isometric(cart_x, cart_y)
+            iso_x += WIDTH // 2
+
+
             if noise_val<-0.1:
                 tile_colour = water_img
-            elif noise_val<0.1:
+            elif noise_val <0.1:
+                tile_colour = sand_img
+            elif noise_val < 0.7:
                 if(moist_val>0.5):
                     tile_colour = forest_img
                 elif moist_val<-0.5:
-                    tile_colour = sand_img
+                    tile_colour = savana_img
                 else:
                     tile_colour = grass_img
             else:
                 tile_colour = snow_img
-            new_tile = Grid(x_pos_new,y_pos_new,tile_colour)
+            new_tile = Grid(iso_x,iso_y,tile_colour)
             grid_surf.add(new_tile)
 
 map_gen(offset_x,offset_y)
