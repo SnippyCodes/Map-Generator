@@ -2,7 +2,8 @@ import pygame
 import random as rn
 from sys import exit
 from settings import TILE_SIZE,WIDTH,HEIGHT,FPS
-from noise import pnoise2 #For 2D image 
+from perlin_noise import PerlinNoise
+
 pygame.init()
 pygame.display.set_caption("Grid")
 clock = pygame.time.Clock()
@@ -18,14 +19,18 @@ class Grid(pygame.sprite.Sprite):
         super().__init__()
         self.image = image
         self.rect = self.image.get_rect(topleft = (x,y))
+        #To ignore the invisible corners made by isometric view 
+        self.mask = self.image.get_rect(topleft = (x,y))
 
 grid_surf = pygame.sprite.Group()
 
 seed = rn.randint(1,1000000)
 seed_moisture = rn.randint(1,1000000)
-scale = 0.1 #For smoothness of image elevation and depression 
-rows = WIDTH//TILE_SIZE
-cols = HEIGHT//TILE_SIZE
+scale = 0.05 #For smoothness of image elevation and depression
+noise_gen = PerlinNoise(octaves=3, seed=seed)
+moisture_gen = PerlinNoise(octaves=3, seed=seed_moisture) 
+rows = (WIDTH//TILE_SIZE)*3
+cols = (HEIGHT//TILE_SIZE)*3
 offset_x = 0
 offset_y = 0
 scroll_speed = 1.5
@@ -40,32 +45,38 @@ def isometric(x,y):
 
 def map_gen(offset_x,offset_y):
     grid_surf.empty()
+    shift_x = WIDTH //2
+    shift_y = -(HEIGHT // 2)
     for i in range(rows):
         for j in range(cols):
-            noise_val = pnoise2((i*scale)+offset_x,(j*scale)+offset_y,base = seed,octaves = 5,persistence = 0.4,lacunarity = 1.5)        
-            moist_val = pnoise2((i*scale)+ offset_x, (j*scale)+offset_y,base = seed_moisture,octaves = 5)
-            
-            
-            cart_x = (i * TILE_SIZE) + offset_x
-            cart_y = (j * TILE_SIZE) + offset_y
+            x = ((i*scale)+offset_x)
+            y = ((j*scale)+offset_y)
+            noise_val = noise_gen([x, y])
+            moist_val = moisture_gen([x, y])
+
+            cart_x = (i * (TILE_SIZE //2)) + offset_x
+            cart_y = (j * (TILE_SIZE // 2)) + offset_y
 
             iso_x, iso_y = isometric(cart_x, cart_y)
-            iso_x += WIDTH // 2
+            iso_x += shift_x
+            iso_y += shift_y
 
 
-            if noise_val<-0.1:
+            if noise_val >0:
+                iso_y -= int(noise_val*50)
+            if noise_val < -0.1:
                 tile_colour = water_img
-            elif noise_val <0.1:
+            elif noise_val < 0.1:
                 tile_colour = sand_img
             elif noise_val < 0.7:
-                if(moist_val>0.5):
+                if moist_val >0.5:
                     tile_colour = forest_img
-                elif moist_val<-0.5:
+                elif moist_val < -0.5:
                     tile_colour = savana_img
                 else:
                     tile_colour = grass_img
             else:
-                tile_colour = snow_img
+                tile_colour = snow_img 
             new_tile = Grid(iso_x,iso_y,tile_colour)
             grid_surf.add(new_tile)
 
@@ -95,7 +106,8 @@ while True:
     if(update):
         map_gen(offset_x,offset_y)
         update = False
-    screen.fill("Black")
+    screen.fill("LightBlue")
     grid_surf.draw(screen)
+    mouse_x_pos, mouse_y_pos = pygame.mouse.get_pos()
     pygame.display.update()
     clock.tick(FPS)

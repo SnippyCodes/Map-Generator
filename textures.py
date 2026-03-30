@@ -2,16 +2,16 @@ import pygame
 from settings import TILE_SIZE
 
 # Correct syntax: Load -> Convert -> Scale
-grass_img = pygame.image.load("grass.png").convert()
+grass_img = pygame.image.load("grass.png").convert_alpha()
 grass_img = pygame.transform.scale(grass_img, (TILE_SIZE, TILE_SIZE))
 
-water_img = pygame.image.load("water.png").convert()
+water_img = pygame.image.load("water.png").convert_alpha()
 water_img = pygame.transform.scale(water_img, (TILE_SIZE, TILE_SIZE))
 
-sand_img = pygame.image.load("sand.png").convert()
+sand_img = pygame.image.load("sand.png").convert_alpha()
 sand_img = pygame.transform.scale(sand_img, (TILE_SIZE, TILE_SIZE))
 
-snow_img = pygame.image.load("snow.png").convert()
+snow_img = pygame.image.load("snow.png").convert_alpha()
 snow_img = pygame.transform.scale(snow_img, (TILE_SIZE, TILE_SIZE))
 
 # Use convert_alpha() for images with transparent backgrounds

@@ -1,2 +1,10 @@
 #Ignore the specific file
 DailyCheck.txt
+# Virtual Environments
+venv/
+venv_stable/
+ENV/
+env/
+venv/
+venv_stable/
+.venv/
